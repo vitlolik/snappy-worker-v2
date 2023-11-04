@@ -6,8 +6,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BotModule } from './bot/bot.module';
 import { botName } from './bot/bot.constants';
-import { WhatDayTodayModule } from './what-day-today/what-day-today.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { CoinMarketModule } from './coin-market/coin-market.module';
+import { CurrencyRateModule } from './currency-rate/currency-rate.module';
+import { NewsModule } from './news/news.module';
 
 @Module({
   imports: [
@@ -24,7 +26,9 @@ import { CacheModule } from '@nestjs/cache-manager';
       isGlobal: true,
     }),
     BotModule,
-    WhatDayTodayModule,
+    CoinMarketModule,
+    CurrencyRateModule,
+    NewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

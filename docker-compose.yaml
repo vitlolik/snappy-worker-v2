@@ -1,0 +1,13 @@
+services:
+  nestserver:
+    build: .
+    restart: on-failure
+    hostname: nestserver
+    ports:
+      - '${APP_PORT}:${APP_PORT}'
+  nginx:
+    build: ./nginx
+    ports:
+    - '${NGINX_PORT}:${NGINX_PORT}'
+    depends_on:
+    - nestserver

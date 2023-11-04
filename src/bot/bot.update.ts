@@ -1,19 +1,35 @@
 import { Ctx, Start, Update, Command, InjectBot } from 'nestjs-telegraf';
 import { Context, Telegraf } from 'telegraf';
 
-import { WhatDayTodayService } from 'src/what-day-today/what-day-today.service';
 import { botCommandList, botCommands, botName } from './bot.constants';
+import { Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { CoinMarketService } from 'src/coin-market/coin-market.service';
+import { CryptocurrencyId } from 'src/coin-market/coin-market.types';
+import { CurrencyRateService } from 'src/currency-rate/currency-rate.service';
+import { Currency } from 'src/currency-rate/currency-rate.types';
+import { NewsService } from 'src/news/news.service';
+
+// https://core.telegram.org/bots/api
+// https://core.telegram.org/bots/features#keyboards
 
 @Update()
 export class BotUpdate {
   constructor(
     @InjectBot(botName) private readonly bot: Telegraf<Context>,
-    private readonly whatDayTodayService: WhatDayTodayService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly coinMarketService: CoinMarketService,
+    private readonly currencyRateService: CurrencyRateService,
+    private readonly newsService: NewsService,
   ) {}
 
   @Start()
   async start(@Ctx() ctx: Context) {
-    await this.bot.telegram.setMyCommands(botCommandList);
+    await Promise.all([
+      this.cacheManager.reset(),
+      this.bot.telegram.setMyCommands(botCommandList),
+    ]);
     await ctx.reply('👋🏻');
   }
 
@@ -22,9 +38,54 @@ export class BotUpdate {
     await ctx.replyWithHTML('<b>Привет 👋🏻</b>');
   }
 
-  @Command(botCommands.day.command)
-  async sendDayName(@Ctx() ctx: Context) {
-    const names = await this.whatDayTodayService.getNames();
-    await ctx.reply(names[0]);
+  @Command(botCommands.news.command)
+  async sendRandomNews(@Ctx() ctx: Context) {
+    const news = await this.newsService.getRandomFakeNews();
+
+    await ctx.replyWithPhoto({ url: news.img }, { caption: news.text });
+  }
+
+  @Command(botCommands.tugrik.command)
+  async sendInfoAboutCrypto(@Ctx() ctx: Context) {
+    const currencies = await this.coinMarketService.getCryptocurrenciesQuotes([
+      CryptocurrencyId.btc,
+      CryptocurrencyId.ton,
+      CryptocurrencyId.usdt,
+    ]);
+
+    const messages = currencies.map((item) => {
+      const {
+        symbol,
+        quote: {
+          USD: { price, percent_change_24h },
+        },
+      } = item;
+      const isNegativeChange = percent_change_24h < 0;
+
+      return `<i>${symbol}</i> — <code>${price.toFixed(2)}</code> (на ${
+        isNegativeChange ? '-' : ''
+      }${Math.abs(percent_change_24h).toFixed(2)}% изменился за 24 часа)`;
+    });
+
+    await ctx.replyWithHTML(
+      `\n<b>Курсы тугриков $</b>\n\n${messages.join('\n\n')}`,
+    );
+  }
+
+  @Command(botCommands.rate.command)
+  async sendInfoAboutCurrency(@Ctx() ctx: Context) {
+    const currencies = await this.currencyRateService.getCurrencyExchangeRate([
+      Currency.usd,
+      Currency.eur,
+    ]);
+
+    const messages = currencies.map((item) => {
+      const { value, name } = item;
+      return `<i>${name}</i> — <code>${value.toFixed(2)}</code>`;
+    });
+
+    await ctx.replyWithHTML(
+      `\n<b>Курсы валют ₽</b>\n\n${messages.join('\n\n')}`,
+    );
   }
 }

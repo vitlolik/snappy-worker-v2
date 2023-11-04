@@ -7,9 +7,17 @@ const botCommands = {
     command: 'hi',
     description: 'ботик скажет привет',
   },
-  day: {
-    command: 'day',
-    description: 'какой сегодня день',
+  news: {
+    command: 'news',
+    description: 'пиздец',
+  },
+  tugrik: {
+    command: 'tugrik',
+    description: 'инфа по тугрикам',
+  },
+  rate: {
+    command: 'rate',
+    description: 'инфа по валютам',
   },
 };
 

@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 import { BotUpdate } from './bot.update';
-import { WhatDayTodayModule } from 'src/what-day-today/what-day-today.module';
+import { CoinMarketModule } from 'src/coin-market/coin-market.module';
+import { CurrencyRateModule } from 'src/currency-rate/currency-rate.module';
+import { NewsModule } from 'src/news/news.module';
 
 @Module({
-  imports: [WhatDayTodayModule],
+  imports: [CoinMarketModule, CurrencyRateModule, NewsModule],
   providers: [BotUpdate],
 })
 export class BotModule {}
