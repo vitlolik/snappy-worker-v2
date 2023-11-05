@@ -1,8 +1,10 @@
-import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
+import { Catch, ExceptionFilter } from '@nestjs/common';
+import { TelegrafException } from 'nestjs-telegraf';
+import { TelegramError } from 'telegraf';
 
-@Catch()
+@Catch(TelegrafException, TelegramError, Error)
 export class TelegrafExceptionFilter implements ExceptionFilter {
-  async catch(exception: Error, host: ArgumentsHost): Promise<void> {
-    console.log('TELEGRAF ERROR', exception, host);
+  async catch(exception: TelegrafException | TelegramError): Promise<void> {
+    console.log('TELEGRAM BOT ERROR', exception);
   }
 }
