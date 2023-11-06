@@ -10,6 +10,8 @@ import { CryptocurrencyId } from 'src/coin-market/coin-market.types';
 import { CurrencyRateService } from 'src/currency-rate/currency-rate.service';
 import { Currency } from 'src/currency-rate/currency-rate.types';
 import { NewsService } from 'src/news/news.service';
+import { WeatherService } from 'src/weather/weather.service';
+import { cityCoordinates, weatherIconMap } from 'src/weather/weather.constants';
 
 // https://core.telegram.org/bots/api
 // https://core.telegram.org/bots/features#keyboards
@@ -22,6 +24,7 @@ export class BotUpdate {
     private readonly coinMarketService: CoinMarketService,
     private readonly currencyRateService: CurrencyRateService,
     private readonly newsService: NewsService,
+    private readonly weatherService: WeatherService,
   ) {}
 
   @Start()
@@ -87,5 +90,29 @@ export class BotUpdate {
     await ctx.replyWithHTML(
       `\n<b>Курсы валют ₽</b>\n\n${messages.join('\n\n')}`,
     );
+  }
+
+  @Command(botCommands.weather.command)
+  async sendWeather(@Ctx() ctx: Context) {
+    const data = await this.weatherService.getWeatherByCoordsList([
+      cityCoordinates.barcelona,
+      cityCoordinates.rostov,
+      cityCoordinates.astana,
+      cityCoordinates.tbilisi,
+    ]);
+    const renderTemperature = (value: number) => {
+      value = Math.round(value);
+      const isNegative = value < 0;
+
+      return `${isNegative ? '-' : '+'}${Math.abs(value)}`;
+    };
+
+    const messages = data.map(({ cityName, weather, main }) => {
+      return `<b>${cityName} ${
+        weatherIconMap[weather.icon]
+      }</b>\n<i>${renderTemperature(main.temp)}</i>, ${weather.description}`;
+    });
+
+    await ctx.replyWithHTML(messages.join('\n\n'));
   }
 }

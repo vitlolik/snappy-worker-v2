@@ -10,6 +10,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { CoinMarketModule } from './coin-market/coin-market.module';
 import { CurrencyRateModule } from './currency-rate/currency-rate.module';
 import { NewsModule } from './news/news.module';
+import { WeatherModule } from './weather/weather.module';
+import { CacheService } from './cache/cache.service';
 
 @Module({
   imports: [
@@ -29,8 +31,9 @@ import { NewsModule } from './news/news.module';
     CoinMarketModule,
     CurrencyRateModule,
     NewsModule,
+    WeatherModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, CacheService],
 })
 export class AppModule {}

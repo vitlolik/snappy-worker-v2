@@ -19,6 +19,10 @@ const botCommands = {
     command: 'rate',
     description: 'инфа по валютам',
   },
+  weather: {
+    command: 'weather',
+    description: 'погода',
+  },
 };
 
 const botCommandList: readonly BotCommand[] = Object.entries(botCommands).map(
