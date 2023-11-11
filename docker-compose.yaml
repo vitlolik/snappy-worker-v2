@@ -1,17 +1,19 @@
 services:
   node-server:
     build: ./node-server
-    restart: on-failure
+    restart: unless-stopped
     env_file:
       - .env
     hostname: "${NODE_SERVER_HOSTNAME}"
   holidays-server:
     build: ./holidays-server
+    restart: unless-stopped
     volumes:
       - ./holidays-server/db:/usr/share/nginx/html
     hostname: "${HOLIDAYS_SERVER_HOSTNAME}"
   proxy-server:
     build: ./proxy-server
+    restart: unless-stopped
     ports:
       - "${PROXY_SERVER_PORT}:${PROXY_SERVER_PORT}"
     env_file:
