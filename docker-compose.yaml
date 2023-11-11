@@ -13,7 +13,9 @@ services:
   proxy-server:
     build: ./proxy-server
     ports:
-      - "80:80"
+      - "${PROXY_SERVER_PORT}:${PROXY_SERVER_PORT}"
+    env_file:
+      - .env
     depends_on:
       - node-server
       - holidays-server

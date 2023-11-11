@@ -1,7 +1,7 @@
 worker_processes auto;
 
 events {
-  worker_connections 1024;
+  worker_connections ${PROXY_SERVER_WORKER_CONNECTIONS};
 }
 
 http {
@@ -9,11 +9,11 @@ http {
 
   upstream node_servers {
     least_conn;
-    server node_server:3000;
+    server ${NODE_SERVER_HOSTNAME}:${NODE_SERVER_PORT};
   }
 
   server {
-    listen 80;
+    listen ${PROXY_SERVER_PORT};
     server_name localhost;
 
     add_header X-Frame-Options "SAMEORIGIN";

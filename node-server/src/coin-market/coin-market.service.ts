@@ -1,15 +1,13 @@
 import { HttpService } from '@nestjs/axios';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cache } from 'cache-manager';
-import { catchError, lastValueFrom, map } from 'rxjs';
 import {
   CryptocurrencyId,
   CryptocurrencyQuote,
   CryptocurrencyQuoteResponse,
 } from './coin-market.types';
 import { oneHourInMs } from 'src/app.constants';
+import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class CoinMarketService {
@@ -17,9 +15,9 @@ export class CoinMarketService {
   private apiUrl = 'https://pro-api.coinmarketcap.com/v2';
 
   constructor(
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     readonly configService: ConfigService,
     private readonly httpService: HttpService,
+    private readonly cacheService: CacheService,
   ) {
     this.apiToken = configService.get('COIN_MARKET_TOKEN') as string;
   }
@@ -35,38 +33,28 @@ export class CoinMarketService {
   async getCryptocurrenciesQuotes(
     ids: CryptocurrencyId[],
   ): Promise<CryptocurrencyQuote[]> {
-    const currenciesFromCache = await this.cacheManager.get<
-      CryptocurrencyQuote[]
-    >('crypto-currencies');
+    return this.cacheService.withCache(
+      'crypto-currencies',
+      oneHourInMs,
+      async () => {
+        try {
+          const { data } =
+            await this.httpService.axiosRef.get<CryptocurrencyQuoteResponse>(
+              `${this.apiUrl}/cryptocurrency/quotes/latest`,
+              {
+                params: { id: ids.join(',') },
+                headers: { 'X-CMC_PRO_API_KEY': this.apiToken },
+              },
+            );
 
-    if (currenciesFromCache) return currenciesFromCache;
-
-    const request = this.httpService
-      .get(`${this.apiUrl}/cryptocurrency/quotes/latest`, {
-        params: {
-          id: ids.join(','),
-        },
-        headers: { 'X-CMC_PRO_API_KEY': this.apiToken },
-      })
-      .pipe(map((response) => response.data))
-      .pipe(
-        catchError((error) => {
-          console.log(error);
-          throw new HttpException(
+          return this.getParsedResponse(data);
+        } catch (error) {
+          throw new BadRequestException(
             'CoinMarketService: Cannot get cryptocurrencies',
-            HttpStatus.BAD_REQUEST,
             { cause: error },
           );
-        }),
-      );
-
-    const response = await lastValueFrom<CryptocurrencyQuoteResponse>(request);
-    const currencies = this.getParsedResponse(response);
-
-    if (currencies.length) {
-      await this.cacheManager.set('crypto-currencies', currencies, oneHourInMs);
-    }
-
-    return currencies;
+        }
+      },
+    );
   }
 }

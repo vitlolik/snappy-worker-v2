@@ -22,4 +22,8 @@ export class CacheService {
 
     return result;
   }
+
+  async clear(): Promise<void> {
+    await this.cacheManager.reset();
+  }
 }

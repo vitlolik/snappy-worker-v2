@@ -1,21 +1,19 @@
 import { HttpService } from '@nestjs/axios';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { Cache } from 'cache-manager';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   CurrenciesExchangeRateResponse,
   Currency,
   CurrencyData,
 } from './currency-rate.types';
-import { catchError, lastValueFrom, map } from 'rxjs';
 import { oneHourInMs } from 'src/app.constants';
+import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class CurrencyRateService {
   private apiUrl = 'https://www.cbr-xml-daily.ru/daily_json.js';
 
   constructor(
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly cacheService: CacheService,
     private readonly httpService: HttpService,
   ) {}
 
@@ -37,39 +35,24 @@ export class CurrencyRateService {
   async getCurrencyExchangeRate(
     currencies: Currency[],
   ): Promise<CurrencyData[]> {
-    const currenciesFromCache = await this.cacheManager.get<CurrencyData[]>(
+    return this.cacheService.withCache(
       'currency-exchange-rate',
-    );
+      oneHourInMs,
+      async () => {
+        try {
+          const { data } =
+            await this.httpService.axiosRef.get<CurrenciesExchangeRateResponse>(
+              this.apiUrl,
+            );
 
-    if (currenciesFromCache) return currenciesFromCache;
-
-    const request = this.httpService
-      .get(this.apiUrl)
-      .pipe(map((response) => response.data))
-      .pipe(
-        catchError((error) => {
-          console.log(error);
-          throw new HttpException(
+          return this.getParsedResponse(data, currencies);
+        } catch (error) {
+          throw new BadRequestException(
             'CurrencyRateService: Cannot get currency exchange rate',
-            HttpStatus.BAD_REQUEST,
             { cause: error },
           );
-        }),
-      );
-
-    const response = await lastValueFrom<CurrenciesExchangeRateResponse>(
-      request,
+        }
+      },
     );
-    const currencyExchangeRate = this.getParsedResponse(response, currencies);
-
-    if (currencyExchangeRate.length) {
-      await this.cacheManager.set(
-        'currency-exchange-rate',
-        currencyExchangeRate,
-        oneHourInMs,
-      );
-    }
-
-    return currencyExchangeRate;
   }
 }
