@@ -1,13 +1,19 @@
 services:
-  nestserver:
-    build: .
+  node-server:
+    build: ./node-server
     restart: on-failure
-    hostname: nestserver
+    env_file:
+      - .env
+    hostname: "${NODE_SERVER_HOSTNAME}"
+  holidays-server:
+    build: ./holidays-server
+    volumes:
+      - ./holidays-server/db:/usr/share/nginx/html
+    hostname: "${HOLIDAYS_SERVER_HOSTNAME}"
+  proxy-server:
+    build: ./proxy-server
     ports:
-      - '${APP_PORT}:${APP_PORT}'
-  nginx:
-    build: ./nginx
-    ports:
-    - '${NGINX_PORT}:${NGINX_PORT}'
+      - "80:80"
     depends_on:
-    - nestserver
+      - node-server
+      - holidays-server
