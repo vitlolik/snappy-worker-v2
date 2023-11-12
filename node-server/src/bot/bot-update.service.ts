@@ -8,7 +8,7 @@ import {
 } from 'nestjs-telegraf';
 import { Context, Telegraf } from 'telegraf';
 
-import { botCommandList, botCommands, botName } from './bot.constants';
+import { botCommands, botName } from './bot.constants';
 import { CoinMarketService } from 'src/coin-market/coin-market.service';
 import { CryptocurrencyId } from 'src/coin-market/coin-market.types';
 import { CurrencyRateService } from 'src/currency-rate/currency-rate.service';
@@ -36,14 +36,18 @@ export class BotUpdateService {
     private readonly newsService: NewsService,
     private readonly weatherService: WeatherService,
     private readonly holidaysService: HolidaysService,
-  ) {}
+  ) {
+    this.bot.telegram.setMyCommands(
+      Object.entries(botCommands).map(([, { command, description }]) => ({
+        command,
+        description,
+      })),
+    );
+  }
 
   @Start()
   async start(@Ctx() ctx: Context) {
-    await Promise.all([
-      this.cacheService.clear(),
-      this.bot.telegram.setMyCommands(botCommandList),
-    ]);
+    await this.cacheService.clear();
     await ctx.reply('👋🏻');
   }
 

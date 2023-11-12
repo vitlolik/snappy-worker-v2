@@ -1,8 +1,10 @@
-import { BotCommand } from 'telegraf/typings/core/types/typegram';
+import { CommandRecord } from './bot.types';
 
 const botName = 'snappy-worker';
 
-const botCommands = {
+const botCommands: CommandRecord<
+  ['hi', 'news', 'tugrik', 'rate', 'weather', 'holiday']
+> = {
   hi: {
     command: 'hi',
     description: 'ботик скажет привет',
@@ -29,8 +31,4 @@ const botCommands = {
   },
 };
 
-const botCommandList: readonly BotCommand[] = Object.entries(botCommands).map(
-  ([, { command, description }]) => ({ command, description }),
-);
-
-export { botCommandList, botCommands, botName };
+export { botCommands, botName };

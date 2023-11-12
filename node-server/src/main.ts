@@ -1,4 +1,6 @@
 import { NestFactory } from '@nestjs/core';
+import helmet from 'helmet';
+
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -8,6 +10,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
+
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      xFrameOptions: false,
+      xXssProtection: false,
+    }),
+  );
 
   await app.listen(port);
 }

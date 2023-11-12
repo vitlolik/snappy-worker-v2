@@ -1,13 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { BotCommand } from 'telegraf/typings/core/types/typegram';
+import { BotCommand } from './bot/bot.types';
 
-@Controller()
+@Controller('commands')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
-  getBotCommands(): readonly BotCommand[] {
+  @Get('/')
+  getBotCommands(): Promise<BotCommand[]> {
     return this.appService.getBotCommands();
   }
 }
