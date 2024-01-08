@@ -20,6 +20,7 @@ import { HolidaysService } from 'src/holidays/holidays.service';
 import { CacheService } from 'src/cache/cache.service';
 import { TelegrafExceptionFilter } from 'src/filters/telegraf-exception.filter';
 import { UseFilters } from '@nestjs/common';
+import { GoodMorningService } from 'src/good-morning/good-morning.service';
 
 // https://core.telegram.org/bots/api
 // https://core.telegram.org/bots/features#keyboards
@@ -36,6 +37,7 @@ export class BotUpdateService {
     private readonly newsService: NewsService,
     private readonly weatherService: WeatherService,
     private readonly holidaysService: HolidaysService,
+    private readonly goodMorningService: GoodMorningService,
   ) {
     this.bot.telegram.setMyCommands(
       Object.entries(botCommands).map(([, { command, description }]) => ({
@@ -134,17 +136,23 @@ export class BotUpdateService {
   @Command(botCommands.holiday.command)
   async sendHoliday(@Ctx() ctx: Context) {
     const currentDate = new Date();
-    const year = currentDate.getFullYear();
     const month = `${currentDate.getMonth() + 1}`.padStart(2, '0');
     const day = `${currentDate.getDate()}`.padStart(2, '0');
 
     try {
       const holiday = await this.holidaysService.getRandomHolidayByDate(
-        `${year}-${month}-${day}`,
+        `${month}-${day}`,
       );
       await ctx.reply(holiday);
     } catch {
       await ctx.reply('Нет праздников. Соси хуй быдло');
     }
+  }
+
+  @Command(botCommands.good_morning.command)
+  async sendGoodMorningPicture(@Ctx() ctx: Context) {
+    const pictureUrl = this.goodMorningService.getRandomGoodMorningPicture();
+
+    await ctx.replyWithPhoto({ url: pictureUrl });
   }
 }

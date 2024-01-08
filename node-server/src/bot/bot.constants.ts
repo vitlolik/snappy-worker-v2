@@ -3,7 +3,7 @@ import { CommandRecord } from './bot.types';
 const botName = 'snappy-worker';
 
 const botCommands: CommandRecord<
-  ['hi', 'news', 'tugrik', 'rate', 'weather', 'holiday']
+  ['hi', 'news', 'tugrik', 'rate', 'weather', 'holiday', 'good_morning']
 > = {
   hi: {
     command: 'hi',
@@ -28,6 +28,10 @@ const botCommands: CommandRecord<
   holiday: {
     command: 'holiday',
     description: 'какой сегодня праздник',
+  },
+  good_morning: {
+    command: 'good_morning',
+    description: 'доброе утро',
   },
 };
 

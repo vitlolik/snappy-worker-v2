@@ -17,7 +17,7 @@ export class HolidaysService {
   }
 
   /**
-   * @param date YYYY-MM-DD
+   * @param date MM-DD
    */
   async getRandomHolidayByDate(date: string): Promise<string> {
     try {

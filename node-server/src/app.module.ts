@@ -20,6 +20,7 @@ import { CacheService } from './cache/cache.service';
 import { HolidaysModule } from './holidays/holidays.module';
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 import { BotUpdateService } from './bot/bot-update.service';
+import { GoodMorningModule } from './good-morning/good-morning.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { BotUpdateService } from './bot/bot-update.service';
     NewsModule,
     WeatherModule,
     HolidaysModule,
+    GoodMorningModule,
   ],
   controllers: [AppController],
   providers: [AppService, CacheService, BotUpdateService],

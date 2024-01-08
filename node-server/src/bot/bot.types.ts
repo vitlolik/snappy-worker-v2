@@ -6,12 +6,16 @@ type Prettify<T> = {
 } & {};
 
 type CommandRecord<T> = T extends [
-  infer First extends string,
-  ...infer Rest extends readonly string[],
+  infer Command extends string,
+  ...infer RestCommands extends readonly string[],
 ]
   ? Prettify<
-      Record<First, { command: First; description: string }> &
-        CommandRecord<Rest>
+      {
+        [Key in Command]: {
+          command: Key;
+          description: string;
+        };
+      } & CommandRecord<RestCommands>
     >
   : unknown;
 

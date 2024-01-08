@@ -7,7 +7,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('/')
-  getBotCommands(): Promise<BotCommand[]> {
+  async getBotCommands(): Promise<BotCommand[]> {
     return this.appService.getBotCommands();
   }
 }
